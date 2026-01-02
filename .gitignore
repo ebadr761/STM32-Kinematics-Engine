@@ -15,3 +15,11 @@ Release/
 .settings/
 *.launch
 
+# STM32CubeIDE build folders
+Debug/
+Release/
+build/
+bin/
+
+# System files
+.DS_Store
