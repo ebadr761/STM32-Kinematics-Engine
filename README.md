@@ -1,8 +1,51 @@
-# STM32-Kinematics-Engine
-My objective is to build a real-time, deterministic velocity estimator for athletic performance using bare-metal C++ and MEMS sensors. I'll use a STM32 Nucleo (I have the F411RE) and perhaps a separate unit to help measure acceleration (MPU6050 IMU).
+# STM32 Kinematics Engine
 
-My reasoning behind this idea involves my exposure to weight training recently, specifically how to measure "explosiveness" rather than just raw strength. The goal is "Velocity Based Training"—basically, I need to know if I’m moving the bar fast enough (around 1.0 m/s) to actually build athletic power. The problem is, I can't feel the difference between 0.7 m/s and 0.9 m/s, and I don't want to buy an expensive commercial tool which is used by athletes (VBT training device) so I’m going to build my own and call it a "Kinematics Engine." I want a small embedded device that I can strap to the barbell that calculates my velocity in real-time and gives me instant feedback—green light if I was fast enough, red light if I was too slow.
+**A deterministic, real-time velocity estimator for athletic performance, built on Bare-Metal C++.**
 
-I’m going to use an STM32 microcontroller because I need precise, deterministic timing that I just can't get from simpler boards. I plan to write this in C++ using a "bare metal" approach—bypassing the standard helper libraries—so I can fully control the hardware registers. The first step is just getting the board to talk to an MPU6050 accelerometer over I2C to get the raw force data.
+## The Objective
+My goal is to build a "Velocity Based Training" (VBT) unit—a small embedded device that straps to a barbell to measure "explosiveness" rather than just raw strength.
 
-The tricky part is going to be the math. Accelerometers only give me force, so I have to mathematically integrate that data to get velocity. If my timing is off by a fraction of a millisecond, the errors will pile up and the data will be useless. To solve this, I’m going to use hardware timers to trigger interrupts exactly 100 or 1000 times a second, ensuring my physics calculations happen at a perfect rhythm. Once that's working, I’ll try to optimize it by using DMA (Direct Memory Access), which should allow the sensor to dump data directly into the chip's memory without the CPU having to baby-sit every single byte. If it works, I’ll have a super-efficient, real-time physics engine that is also durable enough to be running right on the metal.
+In weight training, moving a bar at **0.8 m/s** builds power, while **0.5 m/s** builds strength. The problem is, I can't feel that difference, and commercial VBT tools are incredibly expensive. This project is my solution: a custom "Kinematics Engine" that calculates velocity in real-time and provides instant feedback (Green LED = Fast / Red LED = Slow).
+
+## The Hardware
+* **Microcontroller:** STM32 Nucleo-F411RE (ARM Cortex-M4)
+* **Sensor:** MPU6050 (6-Axis Accelerometer & Gyroscope)
+* **Interface:** UART (for Telemetry) & GPIO (for visual feedback)
+
+## The "Bare Metal" C++ Approach
+I chose to write this firmware in **C++** using a "bare metal" approach. While STM32 usually defaults to C, I converted the project to C++ to leverage **Object-Oriented Programming (OOP)** without sacrificing performance.
+
+### Why C++ for `main.cpp`?
+Most embedded tutorials stick to procedural C with global variables. I wanted to apply software engineering principles to hardware:
+1.  **Encapsulation:** The physics logic is wrapped in a `PhysicsEngine` class. This keeps the state (current velocity, previous timestamp, integration errors) contained within the object, preventing the "global variable spaghetti" common in firmware.
+2.  **Driver Abstraction:** The `MPU6050` driver is a class that accepts an I2C handle. This makes the code reusable and cleaner to read (`sensor.getAcceleration()`).
+3.  **Low-Level Control:** Despite using Classes, I am still bypassing heavy libraries to manipulate hardware registers directly (e.g., writing to `RCC->AHB1ENR` to control clock gating).
+
+## System Architecture
+The system functions as a real-time data pipeline:
+1.  **Input:** The MPU6050 sensor provides raw acceleration data via I2C.
+2.  **Processing:** A hardware timer triggers an interrupt (aiming for 100Hz-1kHz) to ensure deterministic timing.
+3.  **Math:** The `PhysicsEngine` class performs numerical integration (Euler method) to convert Acceleration (m/s²) → Velocity (m/s).
+4.  **Feedback:**
+    * **Visual:** The Green LED toggles if the rep was "Explosive" (>1.0 m/s).
+    * **Telemetry:** Live velocity data is streamed via UART to a laptop console for analysis.
+
+## What I Learned (So Far)
+* **The C++ Linker "Name Mangling" Trap:** I learned that C++ compilers rename functions to support overloading. This broke the STM32 startup file which looks for `main`. I had to use `extern "C"` to force the compiler to treat the entry point as standard C.
+* **Register-Level Control:** I moved away from `HAL_GPIO_WritePin` to directly manipulating the **ODR** (Output Data Register) and **MODER** (Mode Register). This taught me exactly how the silicon controls electricity at the bit level.
+* **Physics in Firmware:** Implementing a physics engine on a chip requires handling "Drift." I learned that even tiny sensor errors accumulate over time during integration, requiring "Deadzone" logic to ignore static noise.
+
+## Project Status
+* [x] Bare Metal GPIO & Clock Configuration
+* [x] UART Telemetry Driver
+* [x] C++ Project Conversion & Linker Setup
+* [x] Physics Engine Implementation (Integration Logic)
+* [ ] MPU6050 I2C Driver (Skeleton Complete, awaiting hardware integration)
+* [ ] DMA Implementation (Planned for efficiency)
+
+## How to Build
+This project is built using **STM32CubeIDE**.
+1.  Clone the repo.
+2.  Import as an "Existing STM32 Project."
+3.  Ensure your build settings allow `float` printing (`-u _printf_float` in linker flags).
+4.  Build & Run on NUCLEO-F411RE.
