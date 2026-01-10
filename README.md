@@ -1,6 +1,8 @@
 # STM32 Kinematics Engine
 
 **A deterministic, real-time velocity estimator for athletic performance, built on Bare-Metal C++.**
+Prototype Engine:
+<img width="1288" height="957" alt="physics engine" src="https://github.com/user-attachments/assets/6495552f-4974-4653-8e4f-f2b3ed4990cf" />
 
 ## The Objective
 My goal is to build a "Velocity Based Training" (VBT) unit—a small embedded device that straps to a barbell to measure "explosiveness" rather than just raw strength.
