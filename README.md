@@ -5,7 +5,7 @@ Prototype Engine:
 <img width="1288" height="957" alt="physics engine" src="https://github.com/user-attachments/assets/6495552f-4974-4653-8e4f-f2b3ed4990cf" />
 
 ## The Objective
-My goal is to build a "Velocity Based Training" (VBT) unit—a small embedded device that straps to a barbell to measure "explosiveness" rather than just raw strength.
+My goal is to build a "Velocity Based Training" (VBT) unit—a small embedded device that straps to a barbell to measure "explosiveness" rather than just raw strength. This repository stores the code for the Kinematics Engine I built to help me reach this goal: It is essentially measures the real-time velocity of the microcontroller (which is connected to a breadboard which houses the accelerometer sensor) but does not store the readings from specific time periods. Due to the sensor noise and other issues I have faced while building this VBT device, I have made a new repository where I'm continuing building this device, but with the knowledge I have now after I have built this Kinematics Engine. To find this repo follow this link: https://github.com/ebadr761/DynamoLift-STM32
 
 In weight training, moving a bar at **0.8 m/s** builds power, while **0.5 m/s** builds strength. The problem is, I can't feel that difference, and commercial VBT tools are incredibly expensive. This project is my solution: a custom "Kinematics Engine" that calculates velocity in real-time and provides instant feedback (Green LED = Fast / Red LED = Slow).
 
